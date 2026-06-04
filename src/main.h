@@ -14,10 +14,8 @@ void getDependencies(std::vector<std::string>& deps);
 bool handleCommands(const std::string& cmd);
 
 void printPlan(const std::string& full_path,
-               const std::string& app_name,
-               const std::vector<std::string> deps);
+               const std::string& app_name);
 void confirmCreate(const std::string& full_path,
-               const std::string& app_name,
-               const std::vector<std::string> deps);
+               const std::string& app_name);
 
 #endif

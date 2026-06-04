@@ -22,7 +22,7 @@ void writeScript(const std::string& path, const std::string& content)
     makeExecutable(path);
 }
 
-void buildScripts(const std::string& full_path, const std::string& app_name, const std::vector<std::string> deps)
+void buildScripts(const std::string& full_path, const std::string& app_name)
 {
     writeScript(full_path + "/build.sh", createBuild(full_path, app_name));
     writeScript(full_path + "/run.sh",   createRun(app_name));
@@ -30,7 +30,7 @@ void buildScripts(const std::string& full_path, const std::string& app_name, con
 }
 
 
-std::string createBuild(const std::string& proj_path, const std::string& app_name, const std::vector<std::string> deps)
+std::string createBuild(const std::string& proj_path, const std::string& app_name)
 {
     if (proj_path.empty() || app_name.empty())
     {
