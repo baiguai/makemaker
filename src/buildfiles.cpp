@@ -1,48 +1,42 @@
 #include "buildfiles.h"
 
-void buildScripts(const std::string& p)
+namespace fs = std::filesystem;
+
+void makeExecutable(const std::string& path)
 {
-    std::string build_script;
-    std::string build_path = p + "/build.sh";
-    std::string run_script;
-    std::string run_path = p + "/run.sh";
-    std::string app_script;
-    std::string app_path = p + "/app.sh";
+    fs::permissions(path,
+        fs::perms::owner_all |
+        fs::perms::group_read | fs::perms::group_exec |
+        fs::perms::others_read | fs::perms::others_exec,
+        fs::perm_options::replace);
+}
 
-
-    build_script = createBuild(p);
-    run_script = createRun();
-    app_script = createApp();
-
-
-    std::ofstream bld(build_path);
-    if (!bld.is_open()) {
-        throw std::runtime_error("Failed to open file for writing: " + build_path);
+void writeScript(const std::string& path, const std::string& content)
+{
+    std::ofstream out(path);
+    if (!out.is_open()) {
+        throw std::runtime_error("Failed to open file for writing: " + path);
     }
+    out << content;
+    out.close();
+    makeExecutable(path);
+}
 
-    bld << build_script;
-    bld.close();
-
-    std::ofstream run(run_path);
-    if (!run.is_open()) {
-        throw std::runtime_error("Failed to open file for writing: " + run_path);
-    }
-
-    run << run_script;
-    run.close();
-
-    std::ofstream app(app_path);
-    if (!app.is_open()) {
-        throw std::runtime_error("Failed to open file for writing: " + app_path);
-    }
-
-    app << app_script;
-    app.close();
+void buildScripts(const std::string& full_path, const std::string& app_name, const std::vector<std::string> deps)
+{
+    writeScript(full_path + "/build.sh", createBuild(full_path, app_name));
+    writeScript(full_path + "/run.sh",   createRun(app_name));
+    writeScript(full_path + "/app.sh",   createApp(app_name));
 }
 
 
-std::string createBuild(const std::string& p)
+std::string createBuild(const std::string& proj_path, const std::string& app_name, const std::vector<std::string> deps)
 {
+    if (proj_path.empty() || app_name.empty())
+    {
+        return "";
+    }
+
     std::string output { R"SH(#!/usr/bin/env bash
 set -euo pipefail
 
@@ -82,6 +76,8 @@ echo "Compiler: $CXX"
 echo ""
 
 mkdir -p "$PROJECT_DIR/build"
+mkdir -p "$PROJECT_DIR/build/linux"
+mkdir -p "$PROJECT_DIR/build/windows"
 
 SOURCES=$(find "$PROJECT_DIR/src" -name '*.cpp' | sort)
 if [ -z "$SOURCES" ]; then
@@ -95,7 +91,7 @@ case "$OS" in
             # shellcheck disable=SC2086
             "$CXX" -std=c++17 -Wall -Wextra -pedantic \
                 -I"$PROJECT_DIR/src" \
-                -o "$PROJECT_DIR/build/makemaker.exe" \
+                -o "$PROJECT_DIR/build/windows/__APP_NAME__.exe" \
                 $SOURCES
         else
             echo "Error: Windows build currently requires g++ (MinGW)." >&2
@@ -106,38 +102,69 @@ case "$OS" in
         # shellcheck disable=SC2086
         "$CXX" -std=c++17 -Wall -Wextra -pedantic \
             -I"$PROJECT_DIR/src" \
-            -o "$PROJECT_DIR/build/makemaker" \
+            -o "$PROJECT_DIR/build/linux/__APP_NAME__" \
             $SOURCES
         ;;
 esac
 
-echo "Build complete: $PROJECT_DIR/build/makemaker"
+echo "Build complete: $PROJECT_DIR/build/<ENV>/__APP_NAME__"
 )SH" };
 
     size_t pos = 0;
     while ((pos = output.find("__PROJECT_DIR__", pos)) != std::string::npos) {
-        output.replace(pos, 15, p);
-        pos += p.length();
+        output.replace(pos, 15, proj_path);
+        pos += proj_path.length();
+    }
+    pos = 0;
+    while ((pos = output.find("__APP_NAME__", pos)) != std::string::npos) {
+        output.replace(pos, 12, app_name);
+        pos += app_name.length();
     }
 
     return output;
 }
 
-std::string createRun()
+std::string createRun(const std::string& app_name)
 {
-    return R"SH(#!/usr/bin/env bash
+    if (app_name.empty())
+    {
+        return "";
+    }
+
+    std::string output { R"SH(#!/usr/bin/env bash
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 "$SCRIPT_DIR/build.sh"
-exec "$SCRIPT_DIR/build/makemaker" "$@"
-)SH";
+exec "$SCRIPT_DIR/build/linux/__APP_NAME__" "$@"
+)SH"};
+
+    size_t pos = 0;
+    while ((pos = output.find("__APP_NAME__", pos)) != std::string::npos) {
+        output.replace(pos, 12, app_name);
+        pos += app_name.length();
+    }
+
+    return output;
 }
 
-std::string createApp()
+std::string createApp(const std::string& app_name)
 {
-    return R"SH(#!/usr/bin/env bash
+    if (app_name.empty())
+    {
+        return "";
+    }
+
+    std::string output { R"SH(#!/usr/bin/env bash
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-exec "$SCRIPT_DIR/build/makemaker" "$@"
-)SH";
+exec "$SCRIPT_DIR/build/linux/__APP_NAME__" "$@"
+)SH"};
+
+    size_t pos = 0;
+    while ((pos = output.find("__APP_NAME__", pos)) != std::string::npos) {
+        output.replace(pos, 12, app_name);
+        pos += app_name.length();
+    }
+
+    return output;
 }

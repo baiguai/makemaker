@@ -131,7 +131,7 @@ void confirmCreate(const std::string& full_path,
 
     if (p == "y")
     {
-        std::cout << "You said yes!!!\n";
-        buildScripts(full_path);
+        buildScripts(full_path, app_name, deps);
+        std::cout << "\nScripts built.\n\n";
     }
 }
