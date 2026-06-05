@@ -1,26 +1,40 @@
 #include "main.h"
 
+const std::vector<std::string> proj_templates = {
+    "CMakeList Project",
+    "Dear ImGui Project"};
+
 int main()
 {
     std::string full_path { "" };
-    std::string app_name { "" };
+    int project_type { 1 };
 
     std::cout << "\n\nWELCOME TO MAKEMAKER.\n";
-    std::cout << "? - help   q - exit\n\n\n";
+    std::cout << "? - help   q - exit\n\n";
+    std::cout << "Project Templates:\n";
+
+    int idx = 1;
+    for (const auto& proj : proj_templates)
+    {
+        std::cout << "  " << idx << ": " << proj << "\n";
+        ++idx;
+    }
+
+    std::cout << "\n\n";
 
     try
     {
         full_path = getFullPath();
-        app_name = getAppName();
-        printPlan(full_path, app_name);
-        confirmCreate(full_path, app_name);
+        project_type = getProjectType();
     }
     catch (UserQuit&)
     {
         return 0;
     }
 
-    
+    generateTemplate(project_type, full_path);
+
+    std::cout << "\n\nTemplate created at: " << full_path << "\n\n\n";
 
     return 0;
 }
@@ -36,6 +50,8 @@ std::string getFullPath()
         return getFullPath();
     }
 
+    p = expandTilde(p);
+
     if (!folderExists(std::filesystem::path(p)))
     {
         std::cout << "The specified directory doesn't exist.\n\n";
@@ -45,23 +61,32 @@ std::string getFullPath()
     return p;
 }
 
-std::string getAppName()
+int getProjectType()
 {
-    std::string p { "" };
-    std::cout << "Enter the name of your application:\n";
-    std::getline(std::cin, p);
+    std::string tmp { "" };
+    int t = 1;
+    std::cout << "Enter the template number:\n";
+    std::getline(std::cin, tmp);
 
-    if (p.empty())
+    if (handleCommands(tmp))
     {
-        p = "q"; // if blank, assume the user wants to exit
+        return getProjectType();
     }
 
-    if (handleCommands(p))
+    try
     {
-        return getAppName();
+        t = std::stoi(tmp) - 1;
+        if (t < 0 || static_cast<std::size_t>(t) >= proj_templates.size()) throw;
+
+        return t;
+    }
+    catch (...)
+    {
+        std::cout << "Be sure to enter a valid project template number.\n\n";
+        return 1;
     }
 
-    return p;
+    return t;
 }
 
 bool handleCommands(const std::string& cmd)
@@ -83,46 +108,18 @@ bool handleCommands(const std::string& cmd)
 void showHelp()
 {
     std::cout << "\n\n";
-    std::cout << "Project structure:\n\n";
-    std::cout << "<project>\n";
-    std::cout << "    |__[src]\n";
-    std::cout << "         |__[deps]\n";
-    std::cout << "              |__ ...\n\n";
-    std::cout << "src:\n";
-    std::cout << "    Place your C++ source code in this directory.\n";
-    std::cout << "src/deps:\n";
-    std::cout << "    Place any dependency C++ files in subdirectories in src.\n\n\n\n";
+    std::cout << "Available Project Templates:\n\n";
 }
 
-void printPlan(const std::string& full_path,
-               const std::string& app_name)
+void generateTemplate(const int& project_type, const std::string& full_path)
 {
-    std::cout << "\n\nApplication Path:\n   " << full_path;
-    std::cout << "\nApplication Name:\n   " << app_name;
-
-    std::cout << "\n\n";
-}
-
-void confirmCreate(const std::string& full_path,
-               const std::string& app_name)
-{
-    std::string p { "" };
-    std::cout << "Create makefile and build/run scripts (y/n)?\n";
-    std::getline(std::cin, p);
-
-    if (p.empty() || p == "n")
+    switch (project_type)
     {
-        p = "q";
-    }
+        case 1: // Dear ImGui
+            break;
 
-    if (handleCommands(p))
-    {
-        return;
-    }
-
-    if (p == "y")
-    {
-        buildScripts(full_path, app_name);
-        std::cout << "\nScripts built.\n\n";
+        default: // CMakeList
+            buildCMakeList(full_path);
+            break;
     }
 }

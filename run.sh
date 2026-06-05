@@ -1,14 +1,28 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Run Script
+# This script builds and runs your application
 
-"$SCRIPT_DIR/build.sh"
+set -e  # Exit on any error
+source ./config.sh
 
-EXECUTABLE=""
-case "$(uname -s)" in
-    CYGWIN*|MINGW*|MSYS*) EXECUTABLE="$SCRIPT_DIR/build/makemaker.exe" ;;
-    *)                    EXECUTABLE="$SCRIPT_DIR/build/makemaker" ;;
-esac
+echo "Building $APP_NAME..."
+./build.sh
 
-exec "$EXECUTABLE" "$@"
+# Check if build was successful
+if [ ! -f "build/bin/$APP_NAME" ]; then
+    echo "! Build failed ! -- Cannot start $APP_NAME."
+    exit 1
+fi
+
+echo "-- Build successful --"
+echo ""
+echo ""
+echo "Starting $APP_NAME..."
+echo ""
+echo "----------------------------------------"
+echo ""
+echo ""
+
+# Run the application
+"./build/bin/$APP_NAME"

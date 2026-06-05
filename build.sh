@@ -1,70 +1,79 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$SCRIPT_DIR"
+# Build Script
 
-detect_os() {
-    case "$(uname -s)" in
-        Linux*)   echo "linux" ;;
-        Darwin*)  echo "macos" ;;
-        CYGWIN*|MINGW*|MSYS*) echo "windows" ;;
-        *)        echo "unknown" ;;
-    esac
-}
+set -e  # Exit on any error
+source ./config.sh
 
-detect_compiler() {
-    if command -v g++ &>/dev/null; then
-        echo "g++"
-    elif command -v clang++ &>/dev/null; then
-        echo "clang++"
-    elif command -v c++ &>/dev/null; then
-        echo "c++"
-    else
-        echo ""
-    fi
-}
-
-OS=$(detect_os)
-CXX=${CXX:-$(detect_compiler)}
-
-if [ -z "$CXX" ]; then
-    echo "Error: No C++ compiler found. Install g++ or clang++." >&2
-    exit 1
+# Determine build type
+BUILD_TYPE="Debug"
+if [ "$1" == "r" ]; then
+    BUILD_TYPE="Release"
+    echo "Performing RELEASE build."
+else
+    echo "Performing DEBUG build (default)."
 fi
 
-echo "OS:      $OS"
-echo "Compiler: $CXX"
-echo ""
-
-mkdir -p "$PROJECT_DIR/build"
-
-SOURCES=$(find "$PROJECT_DIR/src" -name '*.cpp' | sort)
-if [ -z "$SOURCES" ]; then
-    echo "Error: no .cpp files found in $PROJECT_DIR/src" >&2
-    exit 1
+# Check if build directory exists
+if [ ! -d "build" ]; then
+    echo "Creating build directory..."
+    mkdir build
 fi
 
-case "$OS" in
-    windows)
-        if echo "$CXX" | grep -qi "g++\|mingw"; then
-            # shellcheck disable=SC2086
-            "$CXX" -std=c++17 -Wall -Wextra -pedantic \
-                -I"$PROJECT_DIR/src" \
-                -o "$PROJECT_DIR/build/makemaker.exe" \
-                $SOURCES
-        else
-            echo "Error: Windows build currently requires g++ (MinGW)." >&2
-            exit 1
-        fi
-        ;;
-    *)
-        # shellcheck disable=SC2086
-        "$CXX" -std=c++17 -Wall -Wextra -pedantic \
-            -I"$PROJECT_DIR/src" \
-            -o "$PROJECT_DIR/build/makemaker" \
-            $SOURCES
-        ;;
-esac
+echo "Building Windows EXE..."
+./build-windows.sh
 
-echo "Build complete: $PROJECT_DIR/build/makemaker"
+# Navigate to build directory
+cd build
+
+# Generate CMakeLists.txt from template using config.sh values
+echo "Generating CMakeLists.txt..."
+cp ../CMakeLists.txt.in ../CMakeLists.txt
+
+# Inject app name
+sed -i "s/<<TARGET_NAME>>/$APP_NAME/g" ../CMakeLists.txt
+
+# Inject source files
+SOURCES_TMP=$(mktemp)
+for s in "${SOURCES[@]}"; do
+    echo "    $s" >> "$SOURCES_TMP"
+done
+sed -i "/^<<SOURCES>>$/{
+    r $SOURCES_TMP
+    d
+}" ../CMakeLists.txt
+rm -f "$SOURCES_TMP"
+
+# Configure with CMake
+echo "Configuring with CMake..."
+cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
+
+# Build the project
+echo "Compiling..."
+make
+
+# Check if build was successful
+if [ -f "bin/$APP_NAME" ]; then
+
+
+
+
+    # Add any custom cp's or other actions here
+    # mkdir -p "./bin/data/themes"
+    # cp -r ../themes/* "./bin/data/themes/" 2>/dev/null || true
+
+
+
+
+    echo "-- Build successful --"
+    echo "Executable: $(pwd)/bin/$APP_NAME"
+    echo ""
+    echo "To run $APP_NAME:"
+    echo "  ./bin/$APP_NAME"
+    echo ""
+    echo "Or from the parent directory:"
+    echo "  ./build/bin/$APP_NAME"
+else
+    echo "! failed !"
+    exit 1
+fi
