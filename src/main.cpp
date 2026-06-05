@@ -7,7 +7,6 @@ const std::vector<std::string> proj_templates = {
 int main()
 {
     std::string full_path { "" };
-    int project_type { 1 };
 
     std::cout << "\n\nWELCOME TO MAKEMAKER.\n";
     std::cout << "? - help   q - exit\n\n";
@@ -25,16 +24,12 @@ int main()
     try
     {
         full_path = getFullPath();
-        project_type = getProjectType();
+        getProjectType(full_path);
     }
     catch (UserQuit&)
     {
         return 0;
     }
-
-    generateTemplate(project_type, full_path);
-
-    std::cout << "\n\nTemplate created at: " << full_path << "\n\n\n";
 
     return 0;
 }
@@ -61,7 +56,7 @@ std::string getFullPath()
     return p;
 }
 
-int getProjectType()
+void getProjectType(std::string& full_path)
 {
     std::string tmp { "" };
     int t = 1;
@@ -70,23 +65,36 @@ int getProjectType()
 
     if (handleCommands(tmp))
     {
-        return getProjectType();
+        getProjectType(full_path);
+        return;
     }
 
     try
     {
         t = std::stoi(tmp) - 1;
         if (t < 0 || static_cast<std::size_t>(t) >= proj_templates.size()) throw;
-
-        return t;
     }
     catch (...)
     {
         std::cout << "Be sure to enter a valid project template number.\n\n";
-        return 1;
+        getProjectType(full_path);
+        return;
     }
 
-    return t;
+
+    switch (t)
+    {
+        case 1: // Dear ImGui
+            std::cout << "\n\nThis template has not been fully implemented yet.\n\n\n";
+            showHelp();
+            getProjectType(full_path);
+            break;
+
+        default: // CMakeList
+            buildCMakeList(full_path);
+            std::cout << "\n\nTemplate created at: " << full_path << "\n\n\n";
+            break;
+    }
 }
 
 bool handleCommands(const std::string& cmd)
@@ -109,17 +117,13 @@ void showHelp()
 {
     std::cout << "\n\n";
     std::cout << "Available Project Templates:\n\n";
-}
 
-void generateTemplate(const int& project_type, const std::string& full_path)
-{
-    switch (project_type)
+    int idx = 1;
+    for (const auto& proj : proj_templates)
     {
-        case 1: // Dear ImGui
-            break;
-
-        default: // CMakeList
-            buildCMakeList(full_path);
-            break;
+        std::cout << "  " << idx << ": " << proj << "\n";
+        ++idx;
     }
+
+    std::cout << "\n\n\n";
 }
