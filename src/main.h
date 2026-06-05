@@ -9,9 +9,8 @@
 
 struct UserQuit{};
 std::string getFullPath();
-int getProjectType();
+void getProjectType(std::string& full_path);
 bool handleCommands(const std::string& cmd);
 void showHelp();
-void generateTemplate(const int& project_type, const std::string& full_path);
 
 #endif
