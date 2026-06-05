@@ -7,9 +7,16 @@
 #include <string>
 #include <stdexcept>
 
-void buildScripts(const std::string& full_path, const std::string& app_name);
-std::string createBuild(const std::string& proj_path, const std::string& app_name);
-std::string createRun(const std::string& app_name);
-std::string createApp(const std::string& app_name);
+void makeExecutable(const std::string& path);
+void writeScript(const std::string& path, const std::string& content);
+void buildCMakeList(const std::string& full_path);
+
+std::string createCMakeConfig();
+std::string createCMakeTmplt();
+std::string createCMakeBuild();
+std::string createCMakeBuildWindows();
+std::string createCMakeLeak();
+std::string createCMakeRun();
+std::string createCMakeApp();
 
 #endif
