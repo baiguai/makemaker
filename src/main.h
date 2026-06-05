@@ -12,6 +12,7 @@ std::string getFullPath();
 std::string getAppName();
 void getDependencies(std::vector<std::string>& deps);
 bool handleCommands(const std::string& cmd);
+void showHelp();
 
 void printPlan(const std::string& full_path,
                const std::string& app_name);

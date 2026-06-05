@@ -5,7 +5,8 @@ int main()
     std::string full_path { "" };
     std::string app_name { "" };
 
-    std::cout << "\n\nWELCOME TO MAKEMAKER.\n\n\n";
+    std::cout << "\n\nWELCOME TO MAKEMAKER.\n";
+    std::cout << "? - help   q - exit\n\n\n";
 
     try
     {
@@ -27,7 +28,7 @@ int main()
 std::string getFullPath()
 {
     std::string p { "" };
-    std::cout << "Enter the full path to your application:\n";
+    std::cout << "Enter the full path to your project:\n";
     std::getline(std::cin, p);
 
     if (handleCommands(p))
@@ -70,9 +71,28 @@ bool handleCommands(const std::string& cmd)
         throw UserQuit{};
     }
 
+    if (cmd == "?")
+    {
+        showHelp();
+        return true;
+    }
+
     return false;
 }
 
+void showHelp()
+{
+    std::cout << "\n\n";
+    std::cout << "Project structure:\n\n";
+    std::cout << "<project>\n";
+    std::cout << "    |__[src]\n";
+    std::cout << "         |__[deps]\n";
+    std::cout << "              |__ ...\n\n";
+    std::cout << "src:\n";
+    std::cout << "    Place your C++ source code in this directory.\n";
+    std::cout << "src/deps:\n";
+    std::cout << "    Place any dependency C++ files in subdirectories in src.\n\n\n\n";
+}
 
 void printPlan(const std::string& full_path,
                const std::string& app_name)
