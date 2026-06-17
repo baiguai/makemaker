@@ -71,6 +71,10 @@ SOURCES=(
     "src/utils.cpp"
 )
 
+LIBS=(
+    "libs/raylib/libraylib.a"
+)
+
 HEADERS=(
     "src/main.h"
     "src/utils.h"
@@ -181,6 +185,11 @@ sed -i "/^<<SOURCES>>$/{
 }" ../CMakeLists.txt
 rm -f "$SOURCES_TMP"
 
+# Inject library files
+for lib in "${LIBS[@]}"; do
+    echo "target_link_libraries($APP_NAME PRIVATE \${CMAKE_SOURCE_DIR}/$lib)" >> ../CMakeLists.txt
+done
+
 # Configure with CMake
 echo "Configuring with CMake..."
 cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
@@ -283,6 +292,7 @@ x86_64-w64-mingw32-g++ -std=c++20 \
     -mwindows \
     -o "build-windows/$APP_NAME.exe" \
     "${SOURCES[@]}" \
+    "${LIBS[@]}" \
     -luser32 \
     -lgdi32 \
     -lkernel32 \
