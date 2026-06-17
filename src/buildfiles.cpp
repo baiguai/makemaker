@@ -90,7 +90,7 @@ std::string createCMakeTmplt()
     std::string output { R"SH(cmake_minimum_required(VERSION 3.16)
 project(<<TARGET_NAME>> VERSION 1.0.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Create executable
@@ -158,7 +158,7 @@ if [ ! -d "build" ]; then
 fi
 
 echo "Building Windows EXE..."
-./build-windows.sh
+./build-windows.sh || echo "Warning: Windows build failed, continuing with Linux build..."
 
 # Navigate to build directory
 cd build
@@ -271,7 +271,7 @@ mkdir -p build-windows
 
 # Compile with MinGW-w64 for Windows
 echo "Compiling with MinGW-w64..."
-x86_64-w64-mingw32-g++ -std=c++17 \
+x86_64-w64-mingw32-g++ -std=c++20 \
     -O2 \
     -Wall \
     -Wextra \
