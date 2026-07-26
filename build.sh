@@ -20,6 +20,10 @@ if [ ! -d "build" ]; then
     mkdir build
 fi
 
+# Copy the templates
+rm -rf ./build/tmplt/*
+cp -r ./tmplt ./build/
+
 echo "Building Windows EXE..."
 ./build-windows.sh
 

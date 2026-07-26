@@ -1,4 +1,5 @@
 #include "buildfiles.h"
+#include <filesystem>
 
 namespace fs = std::filesystem;
 
@@ -37,6 +38,20 @@ void buildCMakeList(const std::string& full_path)
     writeScript(full_path + "/app.sh", createCMakeApp());
 }
 
+void copyTemplate(const std::string& full_path, const std::string& template_name)
+{
+    namespace fs = std::filesystem;
+
+    fs::path src = template_name;
+    fs::path dst = full_path;
+
+    for (const auto& entry : fs::directory_iterator(src)) {
+        fs::copy(entry.path(), dst / entry.path().filename(),
+                 fs::copy_options::recursive |
+                 fs::copy_options::overwrite_existing);
+    }
+}
+
 
 
 
@@ -71,6 +86,10 @@ SOURCES=(
     "src/utils.cpp"
 )
 
+LIBS=(
+    "libs/raylib/libraylib.a"
+)
+
 HEADERS=(
     "src/main.h"
     "src/utils.h"
@@ -90,7 +109,7 @@ std::string createCMakeTmplt()
     std::string output { R"SH(cmake_minimum_required(VERSION 3.16)
 project(<<TARGET_NAME>> VERSION 1.0.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Create executable
@@ -158,7 +177,7 @@ if [ ! -d "build" ]; then
 fi
 
 echo "Building Windows EXE..."
-./build-windows.sh
+./build-windows.sh || echo "Warning: Windows build failed, continuing with Linux build..."
 
 # Navigate to build directory
 cd build
@@ -180,6 +199,11 @@ sed -i "/^<<SOURCES>>$/{
     d
 }" ../CMakeLists.txt
 rm -f "$SOURCES_TMP"
+
+# Inject library files
+for lib in "${LIBS[@]}"; do
+    echo "target_link_libraries($APP_NAME PRIVATE \${CMAKE_SOURCE_DIR}/$lib)" >> ../CMakeLists.txt
+done
 
 # Configure with CMake
 echo "Configuring with CMake..."
@@ -271,7 +295,7 @@ mkdir -p build-windows
 
 # Compile with MinGW-w64 for Windows
 echo "Compiling with MinGW-w64..."
-x86_64-w64-mingw32-g++ -std=c++17 \
+x86_64-w64-mingw32-g++ -std=c++20 \
     -O2 \
     -Wall \
     -Wextra \
@@ -283,6 +307,7 @@ x86_64-w64-mingw32-g++ -std=c++17 \
     -mwindows \
     -o "build-windows/$APP_NAME.exe" \
     "${SOURCES[@]}" \
+    "${LIBS[@]}" \
     -luser32 \
     -lgdi32 \
     -lkernel32 \

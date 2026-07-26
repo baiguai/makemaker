@@ -40,6 +40,10 @@ fi
 # Create build directory
 mkdir -p build-windows
 
+# Copy the templates
+rm -rf ./build/tmplt/*
+cp -r ./tmplt ./build-windows/
+
 # Compile with MinGW-w64 for Windows
 echo "Compiling with MinGW-w64..."
 x86_64-w64-mingw32-g++ -std=c++17 \
