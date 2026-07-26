@@ -178,7 +178,7 @@ int main(int, char**)
         {
             if (ImGui::BeginMenu("File"))
             {
-                if (ImGui::MenuItem("Open", "Ctrl+o", &open)) {}
+                // if (ImGui::MenuItem("Open", "Ctrl+o", &open)) {}
                 ImGui::EndMenu();
             }
 
@@ -206,6 +206,9 @@ int main(int, char**)
             ImGui::DockBuilderFinish(dockspace_id);
         }
 
+        // Comment this out to NOT show the demo
+        ImGui::ShowDemoWindow();
+        
         ImGui::End(); // MainDockSpace
 
         // Global hotkeys

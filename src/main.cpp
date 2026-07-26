@@ -85,9 +85,8 @@ void getProjectType(std::string& full_path)
     switch (t)
     {
         case 1: // Dear ImGui
-            std::cout << "\n\nThis template has not been fully implemented yet.\n\n\n";
             showHelp();
-            getProjectType(full_path);
+            copyTemplate(full_path, "./tmplt/imgui/");
             break;
 
         default: // CMakeList

@@ -4,7 +4,7 @@ set -euo pipefail
 ./build.sh
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-EXE="$SCRIPT_DIR/bin/linux/gyving"
+EXE="$SCRIPT_DIR/bin/linux/APP_NAME"
 
 if [[ ! -f "$EXE" ]]; then
     echo "Binary not found at $EXE"

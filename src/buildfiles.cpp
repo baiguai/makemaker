@@ -1,4 +1,5 @@
 #include "buildfiles.h"
+#include <filesystem>
 
 namespace fs = std::filesystem;
 
@@ -35,6 +36,20 @@ void buildCMakeList(const std::string& full_path)
     writeScript(full_path + "/leakcheck.sh", createCMakeLeak());
     writeScript(full_path + "/run.sh", createCMakeRun());
     writeScript(full_path + "/app.sh", createCMakeApp());
+}
+
+void copyTemplate(const std::string& full_path, const std::string& template_name)
+{
+    namespace fs = std::filesystem;
+
+    fs::path src = template_name;
+    fs::path dst = full_path;
+
+    for (const auto& entry : fs::directory_iterator(src)) {
+        fs::copy(entry.path(), dst / entry.path().filename(),
+                 fs::copy_options::recursive |
+                 fs::copy_options::overwrite_existing);
+    }
 }
 
 
