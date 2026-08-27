@@ -91,8 +91,8 @@ LIBS=(
 )
 
 HEADERS=(
-    "src/main.h"
-    "src/utils.h"
+    "src/main.hpp"
+    "src/utils.hpp"
 )
 )SH"};
 
