@@ -12,6 +12,7 @@ void writeScript(const std::string& path, const std::string& content);
 void buildCMakeList(const std::string& full_path);
 void copyTemplate(const std::string& full_path, const std::string& template_name);
 
+std::string createPatch();
 std::string createCMakeConfig();
 std::string createCMakeTmplt();
 std::string createCMakeBuild();
@@ -19,5 +20,7 @@ std::string createCMakeBuildWindows();
 std::string createCMakeLeak();
 std::string createCMakeRun();
 std::string createCMakeApp();
+std::string createSetup();
+std::string createUpgrade();
 
 #endif
