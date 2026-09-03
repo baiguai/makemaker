@@ -1,7 +1,7 @@
 #include "main.h"
 
 const std::vector<std::string> proj_templates = {
-    "CMakeList Project",
+    "Ftxui Project",
     "Dear ImGui Project"};
 
 int main()
@@ -89,7 +89,7 @@ void getProjectType(std::string& full_path)
             copyTemplate(full_path, "./tmplt/imgui/");
             break;
 
-        default: // CMakeList
+        default: // Ftxui
             buildCMakeList(full_path);
             std::cout << "\n\nTemplate created at: " << full_path << "\n\n\n";
             break;
